@@ -47,6 +47,24 @@ $ calendar-export -no-table
 $ calendar-export -date=2024-12-24
 ```
 
+## Example Output
+
+```bash
++-------+---------------------------------------------------+-------+
+| ZEIT  | ZUSAMMENFASSUNG                                   | TOTAL |
++-------+---------------------------------------------------+-------+
+| 0:45  | Meeting GALAXY-1241 review                        | 0:45  |
+| 0:30  | Meeting GALAXY-1235 fixed font-size               | 1:15  |
+| 0:15  | Meeting Galaxy Daily Standup (DEVs)               | 1:30  |
+| 0:45  | Meeting NOTICKET general quality improvement talk | 2:15  |
+| 0:15  | Meeting WebDev Daily                              | 2:30  |
+| 1:30  | Meeting Refinement Content Components             | 4:00  |
+| 1:45  | Meeting FW: Bi-Weekly | DevOps                    | 5:45  |
++-------+---------------------------------------------------+-------+
+| TOTAL |                                                   | 5:45  |
++-------+---------------------------------------------------+-------+
+```
+
 ## Lizenz
 
 [MIT](https://choosealicense.com/licenses/mit/)

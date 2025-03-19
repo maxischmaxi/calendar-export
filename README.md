@@ -23,28 +23,28 @@ Diese Datei kann über die Google Developer Console erstellt werden.
 ## Installation
 
 ```bash
-git clone https://github.com/maxischmaxi/calendar-export.git
-cd calendar-export
-go build
-go install
+$ git clone https://github.com/maxischmaxi/calendar-export.git
+$ cd calendar-export
+$ go build
+$ go install
 ```
 
 ## Verwendung
 
 ```bash
-calendar-export
+$ calendar-export
 ```
 
 ```bash
-calendar-export -h
+$ calendar-export -h
 ```
 
 ```bash
-calendar-export -no-table
+$ calendar-export -no-table
 ```
 
 ```bash
-calendar-export -date=2024-12-24
+$ calendar-export -date=2024-12-24
 ```
 
 ## Lizenz

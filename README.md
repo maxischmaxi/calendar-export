@@ -65,6 +65,13 @@ $ calendar-export -date=2024-12-24
 +-------+---------------------------------------------------+-------+
 ```
 
+## New Version
+
+```bash
+$ git tag v1.0.0
+$ git push origin v1.0.0
+```
+
 ## Lizenz
 
 [MIT](https://choosealicense.com/licenses/mit/)

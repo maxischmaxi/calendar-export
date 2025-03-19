@@ -119,9 +119,8 @@ func printList(items []*calendar.Event) {
 		end := parseTime(item.End)
 		diff := end.Sub(start)
 		timeValue := formatDiff(diff)
-		summary := formatSummary(item.Summary)
 
-		fmt.Printf("%s: %s\n", timeValue, summary)
+		fmt.Printf("%s: %s\n", timeValue, item.Summary)
 	}
 }
 
@@ -137,9 +136,8 @@ func printTable(items []*calendar.Event) {
 		diff := end.Sub(start)
 		totalDiff += diff.Minutes()
 		timeValue := formatDiff(diff)
-		summary := formatSummary(item.Summary)
 
-		t.AppendRow(table.Row{timeValue, summary, formatDiff(time.Duration(totalDiff * float64(time.Minute)))})
+		t.AppendRow(table.Row{timeValue, item.Summary, formatDiff(time.Duration(totalDiff * float64(time.Minute)))})
 	}
 
 	t.AppendSeparator()
@@ -163,10 +161,6 @@ func parseTime(timestamp *calendar.EventDateTime) time.Time {
 	}
 
 	return t
-}
-
-func formatSummary(summary string) string {
-	return "Meeting " + summary
 }
 
 func formatDiff(dur time.Duration) string {

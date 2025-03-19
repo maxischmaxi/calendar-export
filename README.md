@@ -5,8 +5,20 @@ wobei die gesammelten Stunden berechnet und zusammen gefasst werden.
 
 ## Voraussetzungen
 
-Damit die App funktioniert muss eine `credentials.json` Datei im Root Verzeichnis des Projekts
-vorhanden sein. Diese Datei kann über die Google Developer Console erstellt werden.
+Damit die App funktioniert muss eine `credentials.json` Datei vorhanden sein.
+Diese Datei kann über die Google Developer Console erstellt werden.
+
+### Unix
+
+```bash
+~/.config/calendar-export/credentials.json
+```
+
+### Windows
+
+```bash
+%APPDATA%\calendar-export\credentials.json
+```
 
 ## Installation
 

@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"path"
 	"runtime"
 	"strings"
 	"time"
@@ -39,18 +40,9 @@ func main() {
 	}
 
 	ctx := context.Background()
-
-	b, err := os.ReadFile("credentials.json")
-	if err != nil {
-		log.Fatalf("Unable to read client secret file: %v", err)
-	}
-
-	config, err := google.ConfigFromJSON(b, calendar.CalendarReadonlyScope)
-	if err != nil {
-		log.Fatalf("Unable to parse client secret file to config: %v", err)
-	}
-
+	config := getConfig()
 	client := getClient(config)
+
 	srv, err := calendar.NewService(ctx, option.WithHTTPClient(client))
 	if err != nil {
 		log.Fatalf("Unable to retrieve Calendar client: %v", err)
@@ -70,7 +62,7 @@ func main() {
 	} else {
 		items := make([]*calendar.Event, 0)
 
-		for _, item := range items {
+		for _, item := range events.Items {
 			if strings.HasSuffix(item.Summary, "Zuhause") {
 				continue
 			}
@@ -88,6 +80,37 @@ func main() {
 			printList(items)
 		}
 	}
+}
+
+func getConfigDir() string {
+	var configDir string
+
+	if runtime.GOOS == "windows" {
+		configDir = os.Getenv("APPDATA")
+	} else {
+		configHome := os.Getenv("XDG_CONFIG_HOME")
+		if configHome == "" {
+			configHome = path.Join(os.Getenv("HOME"), ".config")
+		}
+		configDir = path.Join(configHome, "calendar-export")
+	}
+
+	return configDir
+}
+
+func getConfig() *oauth2.Config {
+	configDir := getConfigDir()
+	b, err := os.ReadFile(path.Join(configDir, "credentials.json"))
+	if err != nil {
+		log.Fatalf("Unable to read client secret file: %v", err)
+	}
+
+	config, err := google.ConfigFromJSON(b, calendar.CalendarReadonlyScope)
+	if err != nil {
+		log.Fatalf("Unable to parse client secret file to config: %v", err)
+	}
+
+	return config
 }
 
 func printList(items []*calendar.Event) {
@@ -153,7 +176,8 @@ func formatDiff(dur time.Duration) string {
 }
 
 func getClient(config *oauth2.Config) *http.Client {
-	const tokenFile = "token.json"
+	configDir := getConfigDir()
+	tokenFile := path.Join(configDir, "token.json")
 
 	tok, err := tokenFromFile(tokenFile)
 	if err != nil {

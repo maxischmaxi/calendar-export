@@ -3,6 +3,11 @@
 Mit diesem Tool ist es möglich seinen Google Calendar für den heutigen Tag zu exportieren
 wobei die gesammelten Stunden berechnet und zusammen gefasst werden.
 
+## Voraussetzungen
+
+Damit die App funktioniert muss eine `credentials.json` Datei im Root Verzeichnis des Projekts
+vorhanden sein. Diese Datei kann über die Google Developer Console erstellt werden.
+
 ## Installation
 
 ```bash

@@ -10,6 +10,7 @@ import (
 	"os"
 	"os/exec"
 	"path"
+	"regexp"
 	"runtime"
 	"strings"
 	"time"
@@ -113,6 +114,19 @@ func getConfig() *oauth2.Config {
 	return config
 }
 
+func getSummary(item *calendar.Event) string {
+	match, err := regexp.MatchString("^(GALAXY|NOTICKET|fix|quality)", item.Summary)
+	if err != nil {
+		return item.Summary
+	}
+
+	if match {
+		return item.Summary
+	}
+
+	return fmt.Sprintf("Meeting %s", item.Summary)
+}
+
 func printList(items []*calendar.Event) {
 	for _, item := range items {
 		start := parseTime(item.Start)
@@ -120,7 +134,7 @@ func printList(items []*calendar.Event) {
 		diff := end.Sub(start)
 		timeValue := formatDiff(diff)
 
-		fmt.Printf("%s: %s\n", timeValue, item.Summary)
+		fmt.Printf("%s: %s\n", timeValue, getSummary(item))
 	}
 }
 
@@ -137,7 +151,7 @@ func printTable(items []*calendar.Event) {
 		totalDiff += diff.Minutes()
 		timeValue := formatDiff(diff)
 
-		t.AppendRow(table.Row{timeValue, item.Summary, formatDiff(time.Duration(totalDiff * float64(time.Minute)))})
+		t.AppendRow(table.Row{timeValue, getSummary(item), formatDiff(time.Duration(totalDiff * float64(time.Minute)))})
 	}
 
 	t.AppendSeparator()

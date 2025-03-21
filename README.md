@@ -23,6 +23,10 @@ Diese Datei kann über die Google Developer Console erstellt werden.
 ## Installation
 
 ```bash
+$ curl -sSfL https://raw.githubusercontent.com/maxischmaxi/calendar-export/main/install.sh | sh
+```
+
+```bash
 $ git clone https://github.com/maxischmaxi/calendar-export.git
 $ cd calendar-export
 $ go build

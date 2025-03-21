@@ -12,7 +12,6 @@ import (
 	"path"
 	"regexp"
 	"runtime"
-	"strings"
 	"time"
 
 	"github.com/jedib0t/go-pretty/v6/table"
@@ -25,8 +24,22 @@ import (
 func main() {
 	datePtr := flag.String("date", "", "Datum für das die Termine angezeigt werden sollen (Format: 2021-12-31)")
 	noTable := flag.Bool("no-table", false, "Keine Tabelle anzeigen")
+	yesterday := flag.Bool("yesterday", false, "Termine von gestern anzeigen")
+	tomorrow := flag.Bool("tomorrow", false, "Termine von morgen anzeigen")
 
 	flag.Parse()
+
+	if *yesterday && *tomorrow {
+		log.Fatalf("Die Optionen -yesterday und -tomorrow können nicht gleichzeitig verwendet werden.")
+	}
+
+	if *yesterday && *datePtr != "" {
+		log.Fatalf("Die Optionen -yesterday und -date können nicht gleichzeitig verwendet werden.")
+	}
+
+	if *tomorrow && *datePtr != "" {
+		log.Fatalf("Die Optionen -tomorrow und -date können nicht gleichzeitig verwendet werden.")
+	}
 
 	var date time.Time
 
@@ -40,6 +53,14 @@ func main() {
 		}
 	}
 
+	if *yesterday {
+		date = date.AddDate(0, 0, -1)
+	}
+
+	if *tomorrow {
+		date = date.AddDate(0, 0, 1)
+	}
+
 	ctx := context.Background()
 	config := getConfig()
 	client := getClient(config)
@@ -51,9 +72,10 @@ func main() {
 
 	startOfDay := time.Date(date.Year(), date.Month(), date.Day(), 0, 0, 0, 0, time.UTC)
 	endOfDay := startOfDay.Add(24 * time.Hour)
+	start := startOfDay.Format(time.RFC3339)
+	end := endOfDay.Format(time.RFC3339)
 
-	events, err := srv.Events.List("primary").TimeMin(startOfDay.Format(time.RFC3339)).TimeMax(endOfDay.Format(time.RFC3339)).SingleEvents(true).OrderBy("startTime").Do()
-
+	events, err := srv.Events.List("primary").TimeMin(start).TimeMax(end).SingleEvents(true).OrderBy("startTime").Do()
 	if err != nil {
 		log.Fatalf("Unable to retrieve next ten of the user's events: %v", err)
 	}
@@ -64,11 +86,7 @@ func main() {
 		items := make([]*calendar.Event, 0)
 
 		for _, item := range events.Items {
-			if strings.HasSuffix(item.Summary, "Zuhause") {
-				continue
-			}
-
-			if item.Summary == "Außer Haus" {
+			if shouldIgnoreMeeting(item) {
 				continue
 			}
 
@@ -80,6 +98,15 @@ func main() {
 		} else {
 			printList(items)
 		}
+	}
+}
+
+func shouldIgnoreMeeting(item *calendar.Event) bool {
+	switch item.Summary {
+	case "Außer Haus", "Zuhause", "Zeiten eintragen", "Urlaub", "Krank", "Feiertag", "Krankheit", "Urlaubstag", "Krankheitstag", "Feiertagstag":
+		return true
+	default:
+		return false
 	}
 }
 

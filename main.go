@@ -45,20 +45,16 @@ func main() {
 
 	if *datePtr == "" {
 		date = time.Now().UTC()
+	} else if *yesterday {
+		date = date.AddDate(0, 0, -1)
+	} else if *tomorrow {
+		date = date.AddDate(0, 0, 1)
 	} else {
 		var err error
 		date, err = time.Parse("2006-01-02", *datePtr)
 		if err != nil {
 			log.Fatalf("Fehler beim Parsen des Datums: %v", err)
 		}
-	}
-
-	if *yesterday {
-		date = date.AddDate(0, 0, -1)
-	}
-
-	if *tomorrow {
-		date = date.AddDate(0, 0, 1)
 	}
 
 	ctx := context.Background()
@@ -80,24 +76,20 @@ func main() {
 		log.Fatalf("Unable to retrieve next ten of the user's events: %v", err)
 	}
 
-	if len(events.Items) == 0 {
-		fmt.Println("Keine anstehenden Termine gefunden.")
+	items := make([]*calendar.Event, 0)
+
+	for _, item := range events.Items {
+		if shouldIgnoreMeeting(item) {
+			continue
+		}
+
+		items = append(items, item)
+	}
+
+	if !*noTable {
+		printTable(items)
 	} else {
-		items := make([]*calendar.Event, 0)
-
-		for _, item := range events.Items {
-			if shouldIgnoreMeeting(item) {
-				continue
-			}
-
-			items = append(items, item)
-		}
-
-		if !*noTable {
-			printTable(items)
-		} else {
-			printList(items)
-		}
+		printList(items)
 	}
 }
 

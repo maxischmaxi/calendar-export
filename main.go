@@ -160,7 +160,7 @@ func printList(items []*calendar.Event) {
 func printTable(items []*calendar.Event) {
 	t := table.NewWriter()
 	t.SetOutputMirror(os.Stdout)
-	t.AppendHeader(table.Row{"Zeit", "Zusammenfassung", "Total"})
+	t.AppendHeader(table.Row{"Zeit", "Zusammenfassung"})
 	totalDiff := 0.0
 
 	for _, item := range items {
@@ -170,11 +170,11 @@ func printTable(items []*calendar.Event) {
 		totalDiff += diff.Minutes()
 		timeValue := formatDiff(diff)
 
-		t.AppendRow(table.Row{timeValue, getSummary(item), formatDiff(time.Duration(totalDiff * float64(time.Minute)))})
+		t.AppendRow(table.Row{timeValue, getSummary(item)})
 	}
 
 	t.AppendSeparator()
-	t.AppendFooter(table.Row{"Total", "", formatDiff(time.Duration(totalDiff * float64(time.Minute)))})
+	t.AppendFooter(table.Row{"Total", formatDiff(time.Duration(totalDiff * float64(time.Minute)))})
 	t.Render()
 }
 

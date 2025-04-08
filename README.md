@@ -44,6 +44,14 @@ $ calendar-export -h
 ```
 
 ```bash
+$ calendar-export -yesterday
+```
+
+```bash
+$ calendar-export -tomorrow
+```
+
+```bash
 $ calendar-export -no-table
 ```
 
@@ -54,19 +62,19 @@ $ calendar-export -date=2024-12-24
 ## Example Output
 
 ```bash
-+-------+---------------------------------------------------+-------+
-| ZEIT  | ZUSAMMENFASSUNG                                   | TOTAL |
-+-------+---------------------------------------------------+-------+
-| 0:45  | Meeting XXXXXXXXXXXXXXXXXX                        | 0:45  |
-| 0:30  | Meeting XXXXXXXXXXXXXXXXXXXXXXXXXXX               | 1:15  |
-| 0:15  | Meeting XXXXXXXXXXXXXXXXXXXXXXXXXXX               | 1:30  |
-| 0:45  | Meeting XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX | 2:15  |
-| 0:15  | Meeting XXXXXXXXXXXX                              | 2:30  |
-| 1:30  | Meeting XXXXXXXXXXXXXXXXXXXXXXXXXXXXX             | 4:00  |
-| 1:45  | Meeting XXXXXXXXXXXXXXXXXXXXXX                    | 5:45  |
-+-------+---------------------------------------------------+-------+
-| TOTAL |                                                   | 5:45  |
-+-------+---------------------------------------------------+-------+
++-------+-----------------------------------------------------------------+
+| ZEIT  | ZUSAMMENFASSUNG                                                 |
++-------+-----------------------------------------------------------------+
+| 1:00  | XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX                     |
+| 0:15  | XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX                             |
+| 0:45  | XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX              |
+| 0:30  | XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX                         |
+| 0:15  | XXXXXXXXXXXXXXXXXXXX                                            |
+| 1:00  | XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX                                |
+| 1:00  | XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX |
++-------+-----------------------------------------------------------------+
+| TOTAL | 4:45                                                            |
++-------+-----------------------------------------------------------------+
 ```
 
 ## New Version

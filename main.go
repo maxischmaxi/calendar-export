@@ -43,18 +43,24 @@ func main() {
 
 	var date time.Time
 
-	if *datePtr == "" {
-		date = time.Now().UTC()
-	} else if *yesterday {
-		date = date.AddDate(0, 0, -1)
+	if *yesterday {
+		log.Println("Termine von gestern")
+		date = time.Now().AddDate(0, 0, -1)
 	} else if *tomorrow {
+		log.Println("Termine von morgen")
 		date = date.AddDate(0, 0, 1)
-	} else {
+	} else if len(*datePtr) > 0 {
+		log.Printf("Termine für %s", *datePtr)
 		var err error
-		date, err = time.Parse("2006-01-02", *datePtr)
+		d, err := time.Parse("2006-01-02", *datePtr)
 		if err != nil {
 			log.Fatalf("Fehler beim Parsen des Datums: %v", err)
 		}
+
+		date = time.Date(d.Year(), d.Month(), d.Day(), 0, 0, 0, 0, time.UTC)
+	} else {
+		log.Println("Termine für heute")
+		date = time.Now()
 	}
 
 	ctx := context.Background()
@@ -86,8 +92,10 @@ func main() {
 		items = append(items, item)
 	}
 
+	fmt.Println(date)
+
 	if !*noTable {
-		printTable(items)
+		printTable(items, date)
 	} else {
 		printList(items)
 	}
@@ -157,10 +165,10 @@ func printList(items []*calendar.Event) {
 	}
 }
 
-func printTable(items []*calendar.Event) {
+func printTable(items []*calendar.Event, date time.Time) {
 	t := table.NewWriter()
 	t.SetOutputMirror(os.Stdout)
-	t.AppendHeader(table.Row{"Zeit", "Zusammenfassung"})
+	t.AppendHeader(table.Row{"Zeit", fmt.Sprintf("Zusammenfassung %s", date.Format("2006-01-02"))})
 	totalDiff := 0.0
 
 	for _, item := range items {

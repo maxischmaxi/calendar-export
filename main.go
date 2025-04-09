@@ -19,6 +19,7 @@ import (
 	"golang.org/x/oauth2/google"
 	calendar "google.golang.org/api/calendar/v3"
 	"google.golang.org/api/option"
+	people "google.golang.org/api/people/v1"
 )
 
 func main() {
@@ -44,13 +45,10 @@ func main() {
 	var date time.Time
 
 	if *yesterday {
-		log.Println("Termine von gestern")
 		date = time.Now().AddDate(0, 0, -1)
 	} else if *tomorrow {
-		log.Println("Termine von morgen")
 		date = date.AddDate(0, 0, 1)
 	} else if len(*datePtr) > 0 {
-		log.Printf("Termine für %s", *datePtr)
 		var err error
 		d, err := time.Parse("2006-01-02", *datePtr)
 		if err != nil {
@@ -59,7 +57,6 @@ func main() {
 
 		date = time.Date(d.Year(), d.Month(), d.Day(), 0, 0, 0, 0, time.UTC)
 	} else {
-		log.Println("Termine für heute")
 		date = time.Now()
 	}
 
@@ -67,9 +64,28 @@ func main() {
 	config := getConfig()
 	client := getClient(config)
 
-	srv, err := calendar.NewService(ctx, option.WithHTTPClient(client))
+	auth := option.WithHTTPClient(client)
+
+	srv, err := calendar.NewService(ctx, auth)
 	if err != nil {
 		log.Fatalf("Unable to retrieve Calendar client: %v", err)
+	}
+
+	pplSrv, err := people.NewService(ctx, auth)
+	if err != nil {
+		log.Fatalf("Unable to retrieve People client: %v", err)
+	}
+
+	person, err := pplSrv.People.Get("people/me").PersonFields("emailAddresses").Do()
+	if err != nil {
+		log.Fatalf("Unable to retrieve person: %v", err)
+	}
+
+	email := ""
+	if len(person.EmailAddresses) > 0 {
+		email = person.EmailAddresses[0].Value
+	} else {
+		log.Fatalf("No email address found for the user.")
 	}
 
 	startOfDay := time.Date(date.Year(), date.Month(), date.Day(), 0, 0, 0, 0, time.UTC)
@@ -85,14 +101,12 @@ func main() {
 	items := make([]*calendar.Event, 0)
 
 	for _, item := range events.Items {
-		if shouldIgnoreMeeting(item) {
+		if shouldIgnoreMeeting(item, email) {
 			continue
 		}
 
 		items = append(items, item)
 	}
-
-	fmt.Println(date)
 
 	if !*noTable {
 		printTable(items, date)
@@ -101,7 +115,24 @@ func main() {
 	}
 }
 
-func shouldIgnoreMeeting(item *calendar.Event) bool {
+func shouldIgnoreMeeting(item *calendar.Event, email string) bool {
+	isAttendee := false
+	for _, attendee := range item.Attendees {
+		if attendee.Email == email {
+			if attendee.ResponseStatus != "accepted" {
+				return true
+			}
+			isAttendee = true
+			break
+		}
+	}
+
+	if !isAttendee {
+		if item.Organizer.Email != email {
+			return true
+		}
+	}
+
 	switch item.Summary {
 	case "Außer Haus", "Zuhause", "Zeiten eintragen", "Urlaub", "Krank", "Feiertag", "Krankheit", "Urlaubstag", "Krankheitstag", "Feiertagstag":
 		return true
@@ -227,7 +258,11 @@ func tokenFromFile(file string) (*oauth2.Token, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer f.Close()
+	defer func() {
+		if err := f.Close(); err != nil {
+			log.Fatalf("Fehler beim Schließen der Datei: %v", err)
+		}
+	}()
 
 	var token oauth2.Token
 	err = json.NewDecoder(f).Decode(&token)
@@ -240,7 +275,11 @@ func saveToken(path string, token *oauth2.Token) {
 	if err != nil {
 		log.Fatalf("Unable to save oauth token: %v", err)
 	}
-	defer f.Close()
+	defer func() {
+		if err := f.Close(); err != nil {
+			log.Fatalf("Fehler beim Schließen der Datei: %v", err)
+		}
+	}()
 	err = json.NewEncoder(f).Encode(token)
 
 	if err != nil {
@@ -254,17 +293,24 @@ func getTokenFromWeb(config *oauth2.Config) *oauth2.Token {
 	go func() {
 		http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 			code := r.URL.Query().Get("code")
-			fmt.Fprintf(w, "Autorisierung erfolgreich. Du kannst dieses Fenster schließen.")
+			_, err := fmt.Fprintf(w, "Autorisierung erfolgreich. Du kannst dieses Fenster schließen.")
+			if err != nil {
+				log.Fatalf("Fehler beim Schreiben der Antwort: %v", err)
+			}
 			codeCh <- code
 		})
 		log.Fatal(http.ListenAndServe("localhost:8080", nil))
 	}()
 
 	config.RedirectURL = "http://localhost:8080"
+	config.Scopes = append(config.Scopes, calendar.CalendarReadonlyScope)
+	config.Scopes = append(config.Scopes, people.UserinfoEmailScope)
+	config.Scopes = append(config.Scopes, people.UserinfoProfileScope)
 	authUrl := config.AuthCodeURL("state-token", oauth2.AccessTypeOffline)
 
-	fmt.Println("Öffne im browser: ", authUrl)
 	openURL(authUrl)
+	fmt.Println("open the following url in your browse, if not opened automatically:")
+	fmt.Println(authUrl)
 
 	code := <-codeCh
 
